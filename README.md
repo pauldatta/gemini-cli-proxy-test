@@ -16,16 +16,22 @@ If you don't have access to an actual corporate proxy but need to test proxy con
 
 ## Usage
 
-### 1. Automated Test
+### 1. Automated Test (Recommended)
 
-The easiest way to verify the setup is to run the automated bash script:
+The easiest way to verify the setup is to use the provided Makefile:
 
 ```bash
-chmod +x test_proxy.sh
-./test_proxy.sh
+# Ensure Node.js and Gemini CLI are installed
+make setup
+
+# Run the automated proxy test
+make test
+
+# Clean up log files
+make clean
 ```
 
-**What it does:**
+**What the test does:**
 
 1. Starts the `proxy.js` server in the background on port `8080`.
 2. Pipes a simple prompt ("Reply with 'OK'") into the Gemini CLI.
