@@ -13,7 +13,8 @@ test:
 	chmod +x test_proxy.sh
 	./test_proxy.sh
 
-# Clean up log files
+# Clean up log files and generated files
 clean:
 	@echo "Cleaning up..."
 	rm -f proxy.log
+	rm -rf ./tmp
