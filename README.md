@@ -81,3 +81,74 @@ TypeError: HttpsProxyAgent is not a constructor
 ```
 
 This indicates that the CLI is correctly attempting to route traffic through the proxy, but fails during the initialization of its internal HTTP client. This test environment successfully isolates the issue.
+
+---
+
+## Community Test Results — GCA Licensed Accounts
+
+> **Context**: The sections above document endpoints observed with personal/API-key authentication. The results below were captured using **GCA (Gemini Code Assist) licensed accounts** to identify which domains need to be allowlisted in corporate proxy environments.
+
+### Test: Google Workspace Account with GCA License
+
+- **Contributor**: @arungk27
+- **CLI Version**: Gemini CLI v0.38.0
+- **Account Type**: Google Workspace (GCA licensed)
+- **Date**: 2026-04-27
+
+#### Domains Observed
+
+| Domain | Port | Requests | Purpose |
+|--------|------|----------|---------|
+| `cloudcode-pa.googleapis.com` | 443 | 14 | Core Gemini Code Assist API (prompts & responses) |
+| `oauth2.googleapis.com` | 443 | 2 | OAuth2 token refresh |
+| `us-npm.pkg.dev` | 443 | 3 | Google Artifact Registry (extension/package updates) |
+| `play.googleapis.com` | 443 | 2 | Telemetry & auth scope initialization |
+
+> **Note**: `api.githubcopilot.com:443` (1 request) was also observed but is from a locally configured MCP extension, not core Gemini CLI traffic.
+
+#### Minimum Proxy Allowlist for GCA Users
+
+```
+cloudcode-pa.googleapis.com:443
+oauth2.googleapis.com:443
+us-npm.pkg.dev:443
+play.googleapis.com:443
+```
+
+#### Notable Differences from Personal Accounts
+
+- GCA accounts use **`cloudcode-pa.googleapis.com`** instead of `generativelanguage.googleapis.com`
+- GCA accounts use **`us-npm.pkg.dev`** (Google Artifact Registry) instead of `registry.npmjs.org`
+- `stitch.googleapis.com` was **not observed** with GCA accounts
+- The `HttpsProxyAgent is not a constructor` bug **did not occur** on v0.38.0
+
+#### Raw Proxy Log
+
+```
+[HTTPS/CONNECT] oauth2.googleapis.com:443
+[HTTPS/CONNECT] cloudcode-pa.googleapis.com:443
+[HTTPS/CONNECT] cloudcode-pa.googleapis.com:443
+[HTTPS/CONNECT] cloudcode-pa.googleapis.com:443
+[HTTPS/CONNECT] cloudcode-pa.googleapis.com:443
+[HTTPS/CONNECT] oauth2.googleapis.com:443
+[HTTPS/CONNECT] cloudcode-pa.googleapis.com:443
+[HTTPS/CONNECT] cloudcode-pa.googleapis.com:443
+[HTTPS/CONNECT] cloudcode-pa.googleapis.com:443
+[HTTPS/CONNECT] cloudcode-pa.googleapis.com:443
+[HTTPS/CONNECT] cloudcode-pa.googleapis.com:443
+[HTTPS/CONNECT] cloudcode-pa.googleapis.com:443
+[HTTPS/CONNECT] api.githubcopilot.com:443
+[HTTPS/CONNECT] play.googleapis.com:443
+[HTTPS/CONNECT] play.googleapis.com:443
+[HTTPS/CONNECT] us-npm.pkg.dev:443
+[HTTPS/CONNECT] us-npm.pkg.dev:443
+[HTTPS/CONNECT] us-npm.pkg.dev:443
+[HTTPS/CONNECT] cloudcode-pa.googleapis.com:443
+[HTTPS/CONNECT] cloudcode-pa.googleapis.com:443
+[HTTPS/CONNECT] cloudcode-pa.googleapis.com:443
+[HTTPS/CONNECT] cloudcode-pa.googleapis.com:443
+```
+
+### Add Your Results
+
+If you have tested with a different account type or license, please add your findings above and submit a PR.
