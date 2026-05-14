@@ -1,6 +1,8 @@
 # Gemini CLI Proxy Test
 
-Domain allowlists and proxy configuration for running [Gemini CLI](https://geminicli.com/) behind corporate firewalls.
+Local proxy server and test harness for verifying [Gemini CLI](https://geminicli.com/) connectivity behind corporate proxies. Use the domain allowlists below to configure your firewall rules, or run the test suite to validate your proxy setup.
+
+**Tested with:** Gemini CLI v0.42.0 · Node.js v24.6.0 · macOS
 
 ## Domain Allowlist
 
@@ -51,26 +53,9 @@ play.googleapis.com:443
 
 ---
 
-## ⚠️ Known Issue: Proxy Support Broken ([#24471](https://github.com/google-gemini/gemini-cli/issues/24471))
-
-Setting `HTTPS_PROXY` / `HTTP_PROXY` crashes the CLI with `TypeError: HttpsProxyAgent is not a constructor`. Broken on v0.42.0 and nightly. A workaround using `global-agent` is available and works with all auth methods (OAuth, GCA, Vertex, API key).
-
-**→ [Full root cause analysis and workaround instructions](ISSUE_24471_WORKAROUND.md)**
-
-```bash
-# Quick version — see linked doc for details
-npm install global-agent
-GLOBAL_AGENT_HTTP_PROXY=http://your-proxy:8080 \
-GLOBAL_AGENT_HTTPS_PROXY=http://your-proxy:8080 \
-NODE_OPTIONS="--require $(pwd)/preload-proxy.js" \
-gemini   # do NOT set HTTPS_PROXY
-```
-
----
-
 ## Test Harness
 
-This repo also includes a local proxy server and automated test scripts for validating proxy configurations.
+This repo includes a local proxy server and automated tests for validating proxy configurations.
 
 ### Files
 
@@ -82,9 +67,9 @@ This repo also includes a local proxy server and automated test scripts for vali
 
 ```bash
 make setup             # install prerequisites
-make test              # reproduces bug #24471 (sets HTTPS_PROXY)
-make test-workaround   # validates workaround with existing OAuth/GCA auth
-GEMINI_API_KEY=key make test-apikey  # validates workaround with API key
+make test              # run proxy test (default OAuth auth)
+make test-workaround   # test with global-agent workaround (see below)
+GEMINI_API_KEY=key make test-apikey  # test with API key auth
 make clean             # cleanup
 ```
 
@@ -116,6 +101,12 @@ make clean             # cleanup
 ```
 
 > `api.githubcopilot.com` is from a local MCP extension, not core CLI traffic.
+
+---
+
+## Known Issue
+
+Setting `HTTPS_PROXY` / `HTTP_PROXY` crashes the CLI with `TypeError: HttpsProxyAgent is not a constructor` ([#24471](https://github.com/google-gemini/gemini-cli/issues/24471)). A `global-agent` workaround is available — see [ISSUE_24471_WORKAROUND.md](ISSUE_24471_WORKAROUND.md) for details.
 
 ---
 
