@@ -16,3 +16,5 @@ Thumbs.db
 # Temporary directories and files
 tmp/
 *.swp
+node_modules/
+debug_run.log

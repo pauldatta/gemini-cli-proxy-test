@@ -70,17 +70,77 @@ When running the Gemini CLI through the proxy, you will observe traffic to the f
 - **`stitch.googleapis.com`**: Connects to Google Workspace's Stitch API, primarily used for extension integrations and telemetry.
 - **`play.googleapis.com`**: Occasionally contacted as part of broader Google authentication scopes or telemetry initialization.
 
-## Known Issues (CLI Bug)
+## Known Issue: `HttpsProxyAgent is not a constructor` ([#24471](https://github.com/google-gemini/gemini-cli/issues/24471))
 
-_Note: As of the time of writing, running the Gemini CLI with proxy environment variables exposes an internal bug in the CLI itself._
+### Status
 
-While the proxy successfully intercepts the traffic, the Gemini CLI may crash with the following error:
+| Version | Status | Date Verified |
+|---------|--------|---------------|
+| `v0.42.0` (latest stable) | ❌ **Broken** | 2026-05-14 |
+| `v0.44.0-nightly.20260513` | ❌ **Broken** (PR [#26361](https://github.com/google-gemini/gemini-cli/pull/26361) not merged) | 2026-05-14 |
+| `v0.38.0` (GCA accounts) | ✅ Working | 2026-04-27 |
 
+### Root Cause
+
+The Gemini CLI uses `esbuild` to bundle its dependencies into ESM. The `google-auth-library` / `gaxios` dependency dynamically imports `https-proxy-agent` at runtime via:
+
+```js
+const { HttpsProxyAgent } = await import('https-proxy-agent');
 ```
-TypeError: HttpsProxyAgent is not a constructor
+
+In the bundled ESM output (`chunk-JEW7ZIWE.js`), this dynamic import resolves to a module where the named export `HttpsProxyAgent` is `undefined`. When `gaxios` then calls `new HttpsProxyAgent(...)`, it throws `TypeError: HttpsProxyAgent is not a constructor`.
+
+**This crash is triggered whenever `HTTPS_PROXY` or `HTTP_PROXY` environment variables are set**, regardless of whether you use OAuth or API key authentication. The bug is in the HTTP transport layer, not the auth layer.
+
+### ✅ Verified Workaround
+
+We've validated a workaround that bypasses the broken `gaxios` code path entirely using [`global-agent`](https://github.com/gajus/global-agent), which patches Node's `http.globalAgent` at the socket level — before any library code runs.
+
+**How it works:**
+
+1. **Do NOT set `HTTPS_PROXY` / `HTTP_PROXY`** — these trigger the broken `gaxios` dynamic import.
+2. **Use `global-agent`** to route traffic through the proxy at Node's HTTP agent level.
+3. **Use `GEMINI_API_KEY`** for authentication (optional but recommended to avoid OAuth retry delays).
+
+#### Quick Setup
+
+```bash
+# 1. Install global-agent in your project or globally
+npm install global-agent
+
+# 2. Create a preload script (preload-proxy.js):
+cat > preload-proxy.js << 'EOF'
+const { bootstrap } = require('global-agent');
+bootstrap();
+EOF
+
+# 3. Run Gemini CLI with the workaround:
+GLOBAL_AGENT_HTTP_PROXY="http://your-proxy:8080" \
+GLOBAL_AGENT_HTTPS_PROXY="http://your-proxy:8080" \
+NODE_OPTIONS="--require /absolute/path/to/preload-proxy.js" \
+GEMINI_API_KEY="your-api-key" \
+gemini
 ```
 
-This indicates that the CLI is correctly attempting to route traffic through the proxy, but fails during the initialization of its internal HTTP client. This test environment successfully isolates the issue.
+> **Note for corporate proxies with custom CA certificates:** You may also need `NODE_TLS_REJECT_UNAUTHORIZED=0` or `NODE_EXTRA_CA_CERTS=/path/to/ca-bundle.crt` depending on your proxy's TLS inspection setup.
+
+#### Test it with this repo
+
+```bash
+# Run the workaround test (uses global-agent, no HTTPS_PROXY)
+GEMINI_API_KEY=your_key make test-apikey
+
+# Compare with the broken default (uses HTTPS_PROXY, triggers bug)
+make test
+```
+
+#### Why This Works
+
+| Layer | Default (broken) | Workaround (working) |
+|-------|-------------------|----------------------|
+| Proxy env var | `HTTPS_PROXY` → detected by `gaxios` → triggers broken `import('https-proxy-agent')` | Not set → `gaxios` never attempts the import |
+| Proxy routing | N/A (crashes before routing) | `global-agent` patches `http.globalAgent` → all HTTP/HTTPS goes through proxy at socket level |
+| Auth | OAuth or API key (irrelevant — crash is in transport) | `GEMINI_API_KEY` (avoids OAuth token refresh delays) |
 
 ---
 

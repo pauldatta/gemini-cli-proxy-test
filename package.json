@@ -1,0 +1,24 @@
+{
+  "name": "gemini-cli-proxy-test",
+  "version": "1.0.0",
+  "description": "This project provides a lightweight local proxy server and an automated test script to simulate running the [Gemini CLI](https://geminicli.com/) from behind a corporate proxy.",
+  "main": "proxy.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pauldatta/gemini-cli-proxy-test.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/pauldatta/gemini-cli-proxy-test/issues"
+  },
+  "homepage": "https://github.com/pauldatta/gemini-cli-proxy-test#readme",
+  "dependencies": {
+    "global-agent": "^4.1.3"
+  }
+}
