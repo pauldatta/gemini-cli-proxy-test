@@ -1,0 +1,89 @@
+
+
+---
+Updated DBS Guidance: Proxy & Adoption
+---
+
+DBS: Gemini Enterprise and Code Assist 
+Author: [Paul Datta](mailto:pauldatta@google.com) | Updated : Apr 28, 2026
+
+
+Gemini CLI with Stork Proxy
+
+
+
+Manage Code Assist Licenses
+
+Step
+Action
+Admin Interface
+Key Details
+1
+Assign Licenses
+Manage Gemini Code Assist Standard and Enterprise licenses, 
+Manual Assignment Step
+Assign Gemini Enterprise licenses directly.
+2
+Enable API
+Google Cloud Console
+Enable the Cloud AI Companion API in the specific GCP project(s) used for the pilot.
+3
+Grant IAM Roles
+GCP IAM Page
+Set up Gemini Code Assist Standard and Enterprise
+Grant the users roles: Gemini for Google Cloud User AND Service Usage Consumer.
+4
+Gemini CLI Login
+For the pilot to be successful, developers must have three things:
+
+The License: Assigned via the steps above.
+IAM Roles
+The Extension: Gemini Code Assist
+Gemini CLI - npm install -g @google/gemini-cli
+
+Developers log in to Gemini CLI or the Code Assist IDE extension
+
+Key Point:GCA relies on the standard Google Cloud Identity and IAM framework. 
+FAQ
+Q: I bought Gemini Enterprise.  Do I have Code Assist?
+
+Yes. Gemini Enterprise is a "soft bundle." It includes a subscription to Gemini Code Assist Standard.
+Action Required: You must still assign these licenses in the Google Cloud Console. 
+
+Q: Where do I manage these licenses? All GCA licensing is handled at the Google Cloud Billing Account level via the Admin for Gemini page.
+
+Q: How do I see who is actually using the tool? In the Admin for Gemini dashboard, you can see the "Last Active" date for every assigned user. This is the best way to track engagement during a PoC.
+
+Q: Can I see productivity metrics? Yes. You can use Cloud Monitoring to track GCA usage metrics like Acceptance Rate (the percentage of AI suggestions your developers actually kept).
+
+Dashboard Link: Cloud Monitoring for Gemini (Search for Gemini Code Assist).
+
+Q: Will our code be used to train Google's models?
+
+No. For Gemini Enterprise and Code Assist customers, your code, prompts, and generated recommendations are never used to train foundation models.
+Data Governance: See the Official Gemini Data Governance page for full details to share with your Security/Legal teams.
+
+Q: Troubleshooting Common PoC Issues
+"Unauthorized" error in IDE: Ensure the user has the Service Usage Consumer role on the project.
+"No Licenses Available": Check your License Pool. If you are using Automatic Assignment, reduce the "Inactivity Period" to reclaim seats faster.
+Trial Limitations: If you are on a self-serve free trial, you are limited to 50 licenses for 30 days. If you need to expand, you must convert to a paid subscription or contact your sales rep for an exception.
+Resources
+
+Resource
+Link
+GE Docs
+Get subscriptions and assign licenses for Gemini Enterprise | Google Cloud Documentation
+Gemini CLI Docs
+https://geminicli.com/docs/
+Gemini CLI Enterprise Configurations
+https://geminicli.com/docs/cli/enterprise/
+GCA Admin Console
+console.cloud.google.com/gemini-admin
+Management Documentation
+Manage Licenses Guide
+Enterprise Features Overview
+Supported Features by Edition
+Privacy & Terms
+Gemini for Google Cloud Privacy Notice
+Quotas
+Usage Quotas by Edition
